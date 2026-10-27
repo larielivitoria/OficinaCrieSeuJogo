@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oficina: crie seu primeiro jogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a0f4a;--panel:#231a55;--deep:#150e3d;--ink:#ffffff;--muted:#c3b6ff;--accent:#ffd23f;--cyan:#7ff9ff;--pink:#ff8fb0;--green:#42e38a;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1a0f4a;}}
+:root[data-theme="dark"]{--bg:#1a0f4a;}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{margin:0;background:var(--bg);color:var(--ink);}
+body{height:100%;display:flex;flex-direction:column;font-family:'Baloo 2',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:17px;line-height:1.4;}
+header{display:flex;align-items:center;gap:18px;padding:10px 20px;background:#120838;border-bottom:2px solid rgba(255,255,255,.08);flex:0 0 auto}
+header img{height:34px;width:auto}
+header .curso{font-weight:700;color:var(--muted);font-size:16px;line-height:1.1}
+header h1{margin:0 auto 0 12px;font-size:26px;color:var(--accent);line-height:1}
+button{font:inherit;font-weight:800;cursor:pointer;border-radius:12px;border:0}
+button:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.25);padding:6px 14px;font-size:15px}
+main{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding:16px}
+section{min-height:0;display:flex;flex-direction:column}
+/* etapas */
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button{width:46px;height:46px;border-radius:50%;background:var(--panel);color:#fff;font-size:20px;border:2px solid rgba(255,255,255,.18)}
+.tabs button[aria-current="step"]{background:var(--accent);color:#2a1660;border-color:var(--accent)}
+.guia{background:var(--panel);border-radius:20px;padding:18px 20px;overflow:auto;flex:1;min-height:0}
+.guia h2{margin:0 0 4px;font-size:26px;line-height:1.1;color:var(--accent)}
+.guia .tempo{color:var(--muted);font-size:15px;margin:0 0 10px}
+.guia p{margin:0 0 10px}
+.guia ol{margin:0 0 12px;padding-left:22px}
+.guia li{margin-bottom:6px}
+.guia code{font-family:ui-monospace,Consolas,'Courier New',monospace;background:var(--deep);padding:1px 6px;border-radius:6px;font-size:15px;color:var(--cyan)}
+.como{background:var(--deep);border-radius:14px;padding:10px 14px;font-size:16px;color:#e6defc;margin-bottom:12px}
+.desafio{border:2px dashed var(--accent);border-radius:14px;padding:10px 14px;font-size:16px}
+.desafio b{color:var(--accent)}
+/* editor */
+.barra{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.barra button{padding:8px 12px;font-size:15px;background:var(--panel);color:#fff;border:2px solid rgba(255,255,255,.15)}
+.barra .rodar{background:var(--green);color:#0b3d22;border-color:var(--green);font-size:17px;padding:8px 18px}
+.barra .parar{background:transparent;border-color:var(--pink);color:var(--pink)}
+.baixar{margin-top:12px;padding:12px 16px;font-size:17px;background:var(--accent);color:#2a1660;width:100%}
+.ligar{margin-top:12px;padding:14px 16px;font-size:19px;background:var(--green);color:#08301b;width:100%;box-shadow:0 4px 0 #27a768}
+.ligar:active{transform:translateY(2px);box-shadow:0 2px 0 #27a768}
+.ligar[disabled]{background:transparent;border:2px dashed rgba(66,227,138,.6);color:var(--green);box-shadow:none;cursor:default}
+.ligar[hidden]{display:none}
+.inscrever{margin-top:10px;padding:12px 16px;font-size:17px;width:100%;background:var(--cyan);color:#07263a;font-weight:800}
+.inscrever[hidden]{display:none}
+#modal,#organiza{position:fixed;inset:0;z-index:30;background:rgba(8,5,22,.82);display:flex;align-items:center;justify-content:center;padding:18px}
+#modal[hidden],#organiza[hidden]{display:none}
+#modal .caixa,#organiza .caixa{background:var(--panel);border:2px solid rgba(255,255,255,.18);border-radius:22px;
+  padding:26px 30px;width:min(560px,100%);max-height:100%;overflow:auto}
+#modal h2,#organiza h2{margin:0 0 8px;font-size:28px;color:var(--accent)}
+#modal .expl,#organiza .expl{margin:0 0 16px;font-size:17px;color:var(--muted);line-height:1.4}
+#modal .peq,#organiza .peq{font-size:14px;margin-top:14px}
+#modal label{display:flex;flex-direction:column;gap:5px;font-size:17px;color:#dfe3ff;font-weight:700;margin-bottom:14px}
+#modal input[type=text],#modal input[type=email],#modal input[type=tel]{font:inherit;font-size:18px;padding:10px 12px;
+  border-radius:12px;border:2px solid rgba(255,255,255,.22);background:#150e3d;color:#fff}
+#modal label.chk{flex-direction:row;align-items:flex-start;gap:10px;font-size:15px;font-weight:600;line-height:1.35}
+#modal input[type=checkbox]{width:22px;height:22px;flex:0 0 auto;margin-top:2px}
+.linhaBt{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.linhaBt button{font:inherit;font-weight:800;font-size:17px;padding:11px 18px;border:0;border-radius:14px;cursor:pointer;background:var(--accent);color:#2a1660}
+.linhaBt button.ghost{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.3)}
+.linhaBt button.perigo{background:var(--pink);color:#fff}
+.aviso{color:var(--pink);font-size:16px;font-weight:700;margin:0 0 10px}
+.socorro{margin-top:12px;padding:10px 14px;font-size:16px;background:transparent;border:2px solid var(--pink);color:var(--pink)}
+.socorro[hidden]{display:none}
+.editor{flex:1;min-height:0;display:flex;background:var(--deep);border-radius:18px;overflow:hidden;
+  font:15px/1.5 ui-monospace,'Cascadia Code',Consolas,'Courier New',monospace;border:2px solid rgba(255,255,255,.08)}
+#gut{margin:0;padding:12px 10px;text-align:right;color:#6d5fb0;overflow:hidden;min-width:3.2em;user-select:none;background:#110a33;font:inherit}
+#ed{flex:1;resize:none;border:0;outline:none;background:transparent;color:#f1ecff;padding:12px 14px;font:inherit;white-space:pre;overflow:auto;tab-size:2}
+#ed::selection{background:rgba(255,210,63,.35)}
+.dica{font-size:14px;color:var(--muted);margin:8px 0 0}
+kbd{font-family:inherit;background:var(--panel);border:1px solid rgba(255,255,255,.25);border-bottom-width:3px;border-radius:6px;padding:0 6px;font-size:14px}
+/* palco */
+.palco{width:100%;aspect-ratio:8/5;border-radius:18px;overflow:hidden;background:#120838;border:3px solid rgba(255,255,255,.12)}
+.palco iframe{width:100%;height:100%;border:0;display:block}
+#msg{margin-top:12px;border-radius:16px;padding:12px 16px;font-size:17px;background:var(--panel)}
+#msg.ok{border-left:6px solid var(--green)}
+#msg.erro{border-left:6px solid var(--pink);background:#3a1840}
+#msg button{margin-top:8px;padding:6px 12px;font-size:15px;background:var(--pink);color:#3a1030}
+@media (max-width:1150px){
+  main{grid-template-columns:1fr;overflow:auto}
+  .guia{flex:none}.editor{min-height:420px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJhIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMzQwIDEwMDAgMzIwIiB3aWR0aD0iMTAwMCIgaGVpZ2h0PSIzMjAiPjxkZWZzPjxzdHlsZT4uYWMsLmFke2ZpbGwtcnVsZTpldmVub2RkO30uYWMsLmFle2ZpbGw6I2ZiZWEyNjt9LmFke2ZpbGw6I2ZmZjt9PC9zdHlsZT48L2RlZnM+PGcgaWQ9ImIiPjxwYXRoIGlkPSJjIiBjbGFzcz0iYWQiIGQ9Im02MC4xMSw1OTcuM2gtMTIuNTZsLTguMjEsMzUuOTZjLTEuNDksNi41OS01Ljg1LDEwLjQ1LTE0LjMxLDEwLjQ1LTUuNzIsMC05LjcxLTMuMzctNy45Ni0xMC45NWw4LjA4LTM1LjQ2aC0xMi41N2wtOC4yMSwzNi4yMWMtMS4xMiw1LjQ3LS44OCw5LjgzLDEuNDksMTMuMTksMy45OCw1LjQ4LDExLjgyLDYuNiwxNy4xNyw2LjYsMTQuOCwwLDI1LjYzLTYuMSwyOC44Ni0yMC41Mmw4LjIxLTM1LjQ3WiIvPjxwb2x5Z29uIGlkPSJkIiBjbGFzcz0iYWQiIHBvaW50cz0iNzcuNzcgNjEyLjk3IDkyLjk1IDY1MS45MSAxMDUuMTQgNjUxLjkxIDExNy43IDU5Ny4zIDEwNi4yNiA1OTcuMyA5Ny41NSA2MzUuMjQgOTcuMyA2MzUuMjQgODIuNzUgNTk3LjMgNjkuODEgNTk3LjMgNTcuMjQgNjUxLjkxIDY4LjY5IDY1MS45MSA3Ny42NCA2MTIuOTcgNzcuNzcgNjEyLjk3Ii8+PHBvbHlnb24gaWQ9ImUiIGNsYXNzPSJhZCIgcG9pbnRzPSIxMjYuNTQgNjUxLjkxIDEzOC45OCA1OTcuMyAxMjYuNzkgNTk3LjMgMTE0LjIxIDY1MS45MSAxMjYuNTQgNjUxLjkxIi8+PHBvbHlnb24gaWQ9ImYiIGNsYXNzPSJhZCIgcG9pbnRzPSIxODIuNzcgNTk3LjMgMTYwLjUgNjM4LjYgMTYwLjM4IDYzOC42IDE1Ny4yNiA1OTcuMyAxNDQuMDggNTk3LjMgMTUxLjQyIDY1MS45MSAxNjMuMTEgNjUxLjkxIDE5NS41OCA1OTcuMyAxODIuNzcgNTk3LjMiLz48cG9seWdvbiBpZD0iZyIgY2xhc3M9ImFkIiBwb2ludHM9IjIzNS4yNyA2MjguMDMgMjM3LjUxIDYxOC40NSAyMDguOSA2MTguNDUgMjExLjUxIDYwNi44OCAyNDIuNzQgNjA2Ljg4IDI0NC44NSA1OTcuMyAyMDEuNjggNTk3LjMgMTg5LjExIDY1MS45MSAyMzMuNzcgNjUxLjkxIDIzNi4wMSA2NDIuMjIgMjAzLjQyIDY0Mi4yMiAyMDYuNjUgNjI4LjAzIDIzNS4yNyA2MjguMDMiLz48cGF0aCBpZD0iaCIgY2xhc3M9ImFkIiBkPSJtMjQxLjk5LDY1MS45MWgxMi4wN2w0Ljk4LTIxLjM5aDEyLjY5YzkuMDgsMCw4LjgzLDIuODYsNy4yMSwxMC4zMi0xLjM3LDUuNi0xLjQ5LDguNDYtMS4yNCwxMS4wN2gxMy41NmwuMzctMS40OWMtMi4zNy0uODctMS45OS0yLjg2LS4xMy0xMC44MiwyLjM2LTEwLjIuMTMtMTEuOTQtNC4zNi0xMy45Myw2LjM1LTEuNzQsMTAuNy02Ljk3LDEyLjA3LTEyLjk1LDEuMTItNC43Mi43NS0xNS40My0xNC45My0xNS40M2gtMjkuNzNsLTEyLjU2LDU0LjYyWm0xOS4wNC0zMC42bDMuMzUtMTQuNTZoMTUuNDNjNy4yMiwwLDcuNTksNC4yMyw2Ljk3LDcuMDktMS4yNSw1LjM1LTQuODUsNy40Ny0xMS4zMyw3LjQ3aC0xNC40M1oiLz48cGF0aCBpZD0iaSIgY2xhc3M9ImFkIiBkPSJtMzAwLjIxLDYzNS4xMmMtMS40OSw2LjcxLS41LDE4LjE3LDIxLjAzLDE4LjE3LDUuMSwwLDIzLjUxLTEuMzgsMjcuMjUtMTcuOCwyLjI0LTkuODItNC4zNi0xMi45NC0xMi4wNy0xNC42OGwtMTMuNTYtMy4zNmMtMi4zNy0uNS01Ljg1LTEuMzctNC44Ni01LjYsMS4xMi00Ljk3LDYuOTYtNi41OSwxMS42OS02LjU5LDEwLjcsMCwxMC4zMiw1LjcyLDEwLjIsOC4yMWgxMS42OWMxLjQ5LTYuNzItLjg3LTE3LjY3LTE4Ljc4LTE3LjY3LTE5LjE2LDAtMjUuMTMsMTAuNy0yNi41LDE2LjgtMi43NCwxMi4wNyw1Ljk3LDE0LjA2LDE0LjkzLDE2LjA1bDYuMDksMS4zN2M1Ljg1LDEuMzcsMTAuMDcsMi40OSw5LjA4LDYuODQtMS4zNyw1LjcyLTguMDgsNy4xLTEzLjk0LDcuMS0xMC43LDAtMTEuMDctNS44NS0xMC40NS04LjgzaC0xMS44MVoiLz48cG9seWdvbiBpZD0iaiIgY2xhc3M9ImFkIiBwb2ludHM9IjM2My42NiA2NTEuOTEgMzc2LjEgNTk3LjMgMzYzLjkxIDU5Ny4zIDM1MS4zNCA2NTEuOTEgMzYzLjY2IDY1MS45MSIvPjxwYXRoIGlkPSJrIiBjbGFzcz0iYWQiIGQ9Im0zNzMuMzYsNjUxLjkxaDI1LjVjMTkuNCwwLDI4LjI0LTE2LjkyLDMwLjk4LTI4LjYxLDIuMzYtMTAuMzMsMS44Ni0yNi4wMS0xOC4wNS0yNi4wMWgtMjZsLTEyLjQ0LDU0LjYyWm0yMi40LTQ1LjE2aDExLjgyYzUuMjMsMCwxMy4xOSwxLjI1LDkuNDUsMTcuNDItMS45OSw4Ljk2LTcuNDcsMTguMjktMTcuNTUsMTguMjloLTExLjk0bDguMjEtMzUuNzFaIi8+PHBhdGggaWQ9ImwiIGNsYXNzPSJhZCIgZD0ibTQ0NS43Niw2NDAuNTloMjEuNjVsMS4yNCwxMS4zM2gxMy4zMWwtOC4yLTU0LjYyaC0xNC4xOGwtMzMuNDcsNTQuNjJoMTIuOTVsNi43MS0xMS4zM1ptMTcuOTItMzAuOTdoLjEybDIuMzcsMjEuNTJoLTE0LjkzbDEyLjQ0LTIxLjUyWiIvPjxwYXRoIGlkPSJtIiBjbGFzcz0iYWQiIGQ9Im00ODguMDYsNjUxLjkxaDI1LjUxYzE5LjQxLDAsMjguMzYtMTYuOTIsMzAuOTctMjguNjEsMi4zOC0xMC4zMywxLjg4LTI2LjAxLTE3LjkxLTI2LjAxaC0yNi4wMWwtMTIuNTYsNTQuNjJabTIyLjM5LTQ1LjE2aDExLjgyYzUuMjMsMCwxMy4zMSwxLjI1LDkuNTksMTcuNDItMi4xMiw4Ljk2LTcuNTksMTguMjktMTcuNTQsMTguMjloLTExLjk1bDguMDgtMzUuNzFaIi8+PHBvbHlnb24gaWQ9Im4iIGNsYXNzPSJhZCIgcG9pbnRzPSI1OTEuNyA2MjguMDMgNTkzLjkzIDYxOC40NSA1NjUuMTkgNjE4LjQ1IDU2Ny44MSA2MDYuODggNTk5LjAzIDYwNi44OCA2MDEuMjggNTk3LjMgNTU3Ljk4IDU5Ny4zIDU0NS41NCA2NTEuOTEgNTkwLjIgNjUxLjkxIDU5Mi4zMiA2NDIuMjIgNTU5LjczIDY0Mi4yMiA1NjIuOTYgNjI4LjAzIDU5MS43IDYyOC4wMyIvPjxwYXRoIGlkPSJvIiBjbGFzcz0iYWQiIGQ9Im02MzUuNzQsNjMyLjE0aDE0LjE4YzE1LjgsMCwyMS41Mi0xMi40NSwyMi43Ny0xNy40MiwyLjM2LTEwLjctMi45OS0xNy40Mi0xNC4zMS0xNy40MmgtMjYuODdsLTEyLjU2LDU0LjYyaDEyLjMxbDQuNDctMTkuNzhabTIuMjQtOS4zM2wzLjYxLTE2LjA1aDkuODJjNy41OSwwLDEwLjIxLDIuMTIsOS4wOCw3LjQ2LS42MiwyLjQ4LTEuOTgsOC41OS0xMS4xOSw4LjU5aC0xMS4zMloiLz48cGF0aCBpZD0icCIgY2xhc3M9ImFkIiBkPSJtNjgwLjksNjQwLjU5aDIxLjY0bDEuMjUsMTEuMzNoMTMuMzFsLTguMjEtNTQuNjJoLTE0LjE5bC0zMy40Niw1NC42MmgxMi45NGw2LjcyLTExLjMzWm0xNy45MS0zMC45N2guMTNsMi4zNiwyMS41MmgtMTUuMDVsMTIuNTYtMjEuNTJaIi8+PHBhdGggaWQ9InEiIGNsYXNzPSJhZCIgZD0ibTc4Mi43OSw1OTcuM2gtMTIuNDRsLTguMzMsMzUuOTZjLTEuNDksNi41OS01LjcyLDEwLjQ1LTE0LjE4LDEwLjQ1LTUuNzMsMC05LjcxLTMuMzctNy45Ny0xMC45NWw4LjA4LTM1LjQ2aC0xMi41NmwtOC4zMywzNi4yMWMtMSw1LjQ3LS44OCw5LjgzLDEuNjEsMTMuMTksMy45OSw1LjQ4LDExLjcxLDYuNiwxNy4xOCw2LjYsMTQuOCwwLDI1LjYzLTYuMSwyOC44Ni0yMC41Mmw4LjA5LTM1LjQ3WiIvPjxwb2x5Z29uIGlkPSJyIiBjbGFzcz0iYWQiIHBvaW50cz0iNzkzLjEyIDU5Ny4zIDc4MC41NCA2NTEuOTEgODIyLjEgNjUxLjkxIDgyNC40NyA2NDEuOTYgNzk1LjEgNjQxLjk2IDgwNS40MyA1OTcuMyA3OTMuMTIgNTk3LjMiLz48cG9seWdvbiBpZD0icyIgY2xhc3M9ImFkIiBwb2ludHM9Ijg0MC4xNSA2NTEuOTEgODUyLjcxIDU5Ny4zIDg0MC40IDU5Ny4zIDgyNy45NSA2NTEuOTEgODQwLjE1IDY1MS45MSIvPjxwYXRoIGlkPSJ0IiBjbGFzcz0iYWQiIGQ9Im04NTAuNzEsNjM1LjEyYy0xLjYyLDYuNzEtLjUsMTguMTcsMjEuMDMsMTguMTcsNS4xMSwwLDIzLjUxLTEuMzgsMjcuMjYtMTcuOCwyLjI0LTkuODItNC40OC0xMi45NC0xMi4wOC0xNC42OGwtMTMuNTUtMy4zNmMtMi4zNi0uNS01Ljk3LTEuMzctNC45Ny01LjYsMS4xMi00Ljk3LDcuMDktNi41OSwxMS44Mi02LjU5LDEwLjcsMCwxMC4zMiw1LjcyLDEwLjA3LDguMjFoMTEuODJjMS41LTYuNzItLjg2LTE3LjY3LTE4LjkxLTE3LjY3LTE5LjAzLDAtMjUsMTAuNy0yNi40OSwxNi44LTIuNzQsMTIuMDcsNi4wOSwxNC4wNiwxNS4wNCwxNi4wNWw1Ljk3LDEuMzdjNS45OCwxLjM3LDEwLjA3LDIuNDksOS4yLDYuODQtMS4zNyw1LjcyLTguMiw3LjEtMTMuOTMsNy4xLTEwLjgyLDAtMTEuMDctNS44NS0xMC40Ni04LjgzaC0xMS44MVoiLz48cG9seWdvbiBpZD0idSIgY2xhc3M9ImFkIiBwb2ludHM9IjkyNy44NSA2NTEuOTEgOTM4LjA1IDYwNi44OCA5NTUuODQgNjA2Ljg4IDk1OC4wOCA1OTcuMyA5MTAuMTggNTk3LjMgOTA4LjA3IDYwNi44OCA5MjUuNzQgNjA2Ljg4IDkxNS41MyA2NTEuOTEgOTI3Ljg1IDY1MS45MSIvPjxwYXRoIGlkPSJ2IiBjbGFzcz0iYWQiIGQ9Im05NjAuMDcsNjQwLjU5aDIxLjY1bDEuMjQsMTEuMzNoMTMuMzFsLTguMjEtNTQuNjJoLTE0LjE4bC0zMy40Nyw1NC42MmgxMi45NWw2LjcyLTExLjMzWm0xNy45MS0zMC45N2guMTNsMi4zNywyMS41MmgtMTQuOTNsMTIuNDQtMjEuNTJaIi8+PC9nPjxnIGlkPSJ3Ij48cGF0aCBpZD0ieCIgY2xhc3M9ImFjIiBkPSJtODI2LjYyLDM3Ny45NGwtMjEuNzksNDUuMjFoNTMuOWM0LjY2LDAsNy41Ny0uNzYsMTEuNTktMy4xNCwzLjc4LTIuMjcsNS44LTQuMjksNy42OC04LjMxbDcuMDUtMTQuNjFjMi4xNC00LjI4LDEuMTMtOC4wNi0xLjI2LTEyLjA5LTIuODktNC45MS03LjE4LTcuMDUtMTIuODUtNy4wNWgtNDQuMzNabS01OS4wNi0zMS4yM2gxODIuMzZjNy45NCwwLDEyLjk3LDMuNTMsMTgsOS41Nyw4LjMyLDEwLjIsNS41NSwyMS45MSwwLDMzLjc0bC0xOC42MywzOS41NWMtNC4xNiw4Ljk0LTYuNTUsMTQuNjEtMTQuMTEsMjEuMDMtOS45NSw4LjMyLTE4LjUxLDEwLjg0LTMxLjQ5LDEwLjg0aC0xMTcuNWMtNi41NSwxNi42Mi0xMy45OCwyNS42OS0yOC44MywzNS42NC0xMy4zNSw4LjgyLTIzLjE3LDEyLjcyLTM5LjE2LDEyLjcyaC0yNi45Nmw3Ni4zMS0xNjMuMDhaIi8+PHBhdGggaWQ9InkiIGNsYXNzPSJhZSIgZD0ibTgyNi42MiwzNzcuOTRsLTIxLjc5LDQ1LjIxaDUzLjljNC42NiwwLDcuNTctLjc2LDExLjU5LTMuMTQsMy43OC0yLjI3LDUuOC00LjI5LDcuNjgtOC4zMWw3LjA1LTE0LjYxYzIuMTQtNC4yOCwxLjEzLTguMDYtMS4yNi0xMi4wOS0yLjg5LTQuOTEtNy4xOC03LjA1LTEyLjg1LTcuMDVoLTQ0LjMzWm0tNTkuMDYtMzEuMjNoMTgyLjM2YzcuOTQsMCwxMi45NywzLjUzLDE4LDkuNTcsOC4zMiwxMC4yLDUuNTUsMjEuOTEsMCwzMy43NGwtMTguNjMsMzkuNTVjLTQuMTYsOC45NC02LjU1LDE0LjYxLTE0LjExLDIxLjAzLTkuOTUsOC4zMi0xOC41MSwxMC44NC0zMS40OSwxMC44NGgtMTE3LjVjLTYuNTUsMTYuNjItMTMuOTgsMjUuNjktMjguODMsMzUuNjQtMTMuMzUsOC44Mi0yMy4xNywxMi43Mi0zOS4xNiwxMi43MmgtMjYuOTZsNzYuMzEtMTYzLjA4WiIvPjxwYXRoIGlkPSJ6IiBjbGFzcz0iYWMiIGQ9Im01NTMuMiwzNDcuMzRoNjkuMjdsLTUzLjI2LDExNC43M2MtNy45NCwxNy0xNywyNi44Mi0zMi43NSwzOC4xNS05LjU3LDcuMDYtMzcuMDIsMTUuMjQtNjAuMzIsMTAuMmwtNDQuMzItODYuMDEtMTcuMjYsMzcuNjVjLTcuOCwxNi43NS0xNy4xMywyNi44Mi0zMi43NSwzOC4xNS05LjY5LDcuMDYtMzcuMTUsMTUuMjQtNjAuNDQsMTAuMmw3Ny4wNi0xNjMuMDhoNjkuMzlsNDcuNDcsNzkuNzIsMzcuOTEtNzkuNzJaIi8+PHBhdGggaWQ9ImFhIiBjbGFzcz0iYWMiIGQ9Im01ODIuMDQsNTA5LjgxbDc2LjQ0LTE2My4xaDY5LjI3bC01My4yNywxMTQuNzNjLTcuOTQsMTctMTcuMDEsMjYuODMtMzIuNzUsMzguMTUtOS41OCw3LjA3LTM2LjQsMTUuMjQtNTkuNywxMC4yMWgwWiIvPjxwYXRoIGlkPSJhYiIgY2xhc3M9ImFjIiBkPSJtMjA2LjQ4LDM0Ni43MWgtNzIuNTRsLTQ4LjExLDEwMi42NGMtNy40MywxNS40OS03LjgxLDI5LjIyLDQuNDEsNDMuOTYsMTMuNiwxNi4yNCw0MS42OSwyMi45Miw3MC42NiwyMi45Mmg1Mi42NGMyNi40NSwwLDQzLjgzLTQuOTEsNjQuMjMtMjEuNjYsMTIuNTktMTAuNDYsMTguNzctMTguMzksMjUuNjktMzMuMTJsNTMuMjgtMTE0LjczaC03NC41NmwtMzkuMTYsODIuODdjLTEwLjgzLDI2LjA3LTE2LjYzLDMxLjg2LTUxLjI2LDMxLjg2LTIxLjkxLDAtMzAuMzUtMTcuODgtMjMuOC0zMS44NmwzOC41My04Mi44N1oiLz48L2c+PC9zdmc+" alt="UNIP">
+  <span class="curso">Ciência da Computação<br>(Jundiaí)</span>
+  <h1>Oficina: crie seu primeiro jogo</h1>
+  <button id="nova" class="ghost" title="Apaga tudo e volta para a etapa 1">Nova dupla</button>
+</header>
+<div id="modal" hidden>
+  <form class="caixa" id="formInscricao" autocomplete="on">
+    <h2>Receber meu jogo por e-mail</h2>
+    <p class="expl">Enviaremos o arquivo do jogo que você acabou de criar e um certificado de participação na oficina.</p>
+    <label>Nome completo<input id="fNome" type="text" name="name" maxlength="80" required></label>
+    <label>E-mail<input id="fEmail" type="email" name="email" maxlength="90" required></label>
+    <label>Celular (com DDD)<input id="fFone" type="tel" name="tel" maxlength="20" inputmode="tel"></label>
+    <label class="chk"><input id="fAceite" type="checkbox" required>
+      Autorizo o curso de Ciência da Computação da UNIP Jundiaí a usar meus dados apenas para enviar o jogo, o certificado e informações sobre o curso.</label>
+    <label class="chk"><input id="fMenor" type="checkbox">
+      Tenho menos de 18 anos (neste caso, peça a um monitor para registrar a autorização do responsável)</label>
+    <p class="aviso" id="erroForm" hidden></p>
+    <div class="linhaBt">
+      <button type="submit" id="bEnviar">Confirmar</button>
+      <button type="button" id="bCancelar" class="ghost">Cancelar</button>
+    </div>
+    <p class="expl peq">Os dados ficam apenas neste computador até a equipe do estande exportá-los. Para remover seu cadastro depois, fale com um monitor.</p>
+  </form>
+</div>
+<div id="organiza" hidden>
+  <div class="caixa">
+    <h2>Inscrições da oficina</h2>
+    <p class="expl" id="resumoIns"></p>
+    <div class="linhaBt">
+      <button type="button" id="bCsv">⬇ Baixar inscrições (CSV)</button>
+      <button type="button" id="bJson">⬇ Baixar inscrições + jogos (JSON)</button>
+    </div>
+    <div class="linhaBt">
+      <button type="button" id="bApagar" class="perigo">Apagar todas as inscrições</button>
+      <button type="button" id="bFechaOrg" class="ghost">Fechar</button>
+    </div>
+    <p class="expl peq">Exporte ao fim de cada turno e apague deste computador depois de enviar os e-mails. Atalho: tecla O.</p>
+  </div>
+</div>
+<main>
+  <section aria-label="Etapas">
+    <nav class="tabs" id="tabs" aria-label="Etapas da oficina"></nav>
+    <article class="guia" id="guia" aria-live="polite"></article>
+    <button id="bLigarEtapa" class="ligar">⚡ Ligar as linhas desta etapa</button>
+    <button id="bPronta" class="socorro" title="Carrega esta etapa já resolvida">🆘 Me perdi: ver a etapa pronta</button>
+    <button id="bBaixar" class="baixar" hidden>⬇ Levar meu jogo para casa</button>
+    <button id="bInscrever" class="inscrever" hidden>✉ Receber meu jogo e o certificado por e-mail</button>
+  </section>
+  <section aria-label="Código">
+    <div class="barra">
+      <button class="rodar" id="bRodar" title="Ctrl + Enter">▶ Testar</button>
+      <button class="parar" id="bParar" title="Para o jogo">■ Parar</button>
+      <button id="bLiga" title="Ctrl + /">// Ligar linhas</button>
+      <button id="bRecomeca" title="Volta o código ao começo desta etapa">↺ Recomeçar</button>
+    </div>
+    <div class="editor">
+      <pre id="gut" aria-hidden="true"></pre>
+      <textarea id="ed" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Código do jogo"></textarea>
+    </div>
+    <p class="dica">O botão verde liga as linhas da etapa. Para ligar ou desligar qualquer linha à mão: selecione e use <b>// Ligar linhas</b> (ou <kbd>Ctrl</kbd> + <kbd>/</kbd>). Para testar: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>. Para parar: <kbd>Esc</kbd>.</p>
+  </section>
+  <section aria-label="Jogo">
+    <div class="palco"><iframe id="frame" sandbox="allow-scripts" title="Seu jogo"></iframe></div>
+    <div id="msg" class="ok" role="status"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const ed = $('ed'), gut = $('gut'), frame = $('frame'), msg = $('msg');
+
+/* ================= código dos participantes ================= */
+const TEMPLATE = [
+'// ╔═════ PAINEL DE CONTROLE ═════╗',
+'// Mude os valores e clique em Rodar',
+'let personagem = "🤖"; // 🐱 🐸 🦄 🐧 🚀',
+'let tamanho = 70;',
+'let corDoFundo = "#2a1a6e"; // "teal", "black"',
+'let velocidade = 8;',
+'let item = "⭐"; // 🍕 💎 🍩',
+'let velocidadeDaQueda = 4;',
+'let bug = "🐞"; // 👾 🦠 💣',
+'// ╚══════════════════════════════╝',
+'',
+'// Onde está o personagem?',
+'// (tela: 800 de largura, 500 de altura)',
+'let x = 400;',
+'let y = 430;',
+'',
+'// Onde está o item?',
+'let itemX = 400;',
+'let itemY = 0;',
+'',
+'// Onde está o bug?',
+'let bugX = 200;',
+'let bugY = -250;',
+'',
+'let pontos = 0;',
+'',
+'// Tudo aqui dentro acontece 60 vezes por segundo!',
+'function aCadaQuadro() {',
+'  pintarFundo(corDoFundo);',
+'',
+'  // ETAPA 2: andar com as setas',
+'@2  if (teclaApertada("esquerda")) { x = x - velocidade; }',
+'@2  if (teclaApertada("direita")) { x = x + velocidade; }',
+'',
+'  // ETAPA 3: o item cai do céu',
+'@3  itemY = itemY + velocidadeDaQueda;',
+'@3  if (itemY > 500) { itemY = 0; itemX = sortear(40, 760); }',
+'@3  desenhar(item, itemX, itemY, 50);',
+'',
+'  // ETAPA 3: pegou o item? Ganha ponto!',
+'@3  if (distancia(x, y, itemX, itemY) < 60) {',
+'@3    pontos = pontos + 1;',
+'@3    itemY = 0; itemX = sortear(40, 760);',
+'@3    somDeAcerto();',
+'@3  }',
+'',
+'  // ETAPA 4: cuidado com o bug!',
+'@4  bugY = bugY + velocidadeDaQueda + 2;',
+'@4  if (bugY > 500) { bugY = 0; bugX = sortear(40, 760); }',
+'@4  desenhar(bug, bugX, bugY, 55);',
+'@4  if (distancia(x, y, bugX, bugY) < 60) {',
+'@4    pontos = pontos - 3;',
+'@4    bugY = 0; bugX = sortear(40, 760);',
+'@4    somDeErro();',
+'@4  }',
+'',
+'  // BÔNUS: não sair da tela e vencer o jogo',
+'@5  if (x < 30) { x = 30; }',
+'@5  if (x > 770) { x = 770; }',
+'@5  if (pontos >= 10) { escrever("VOCÊ VENCEU! 🏆", 400, 250, 60); }',
+'',
+'  desenhar(personagem, x, y, tamanho);',
+'  escrever("Pontos: " + pontos, 110, 40, 32);',
+'}'
+].join('\n');
+
+function gerar(nivel){
+  return TEMPLATE.split('\n').map(l => {
+    const m = l.match(/^@(\d)(.*)$/);
+    if (!m) return l;
+    const rest = m[2], ind = rest.match(/^\s*/)[0];
+    return +m[1] <= nivel ? rest : ind + '// ' + rest.slice(ind.length);
+  }).join('\n');
+}
+
+/* ================= etapas ================= */
+const ETAPAS = [
+ { rot:'1', titulo:'Dê a cara do seu jogo', tempo:'cerca de 5 minutos',
+   html:`<p>No alto do código fica o <b>painel de controle</b>. Cada linha guarda um valor com um nome, como <code>tamanho = 70</code>. Em programação, isso se chama <b>variável</b>.</p>
+   <ol><li>Troque o 🤖 por outro emoji, como 🐱 🐸 🦄 ou 🐧. Mantenha as aspas!</li>
+   <li>Mude o <code>tamanho</code> e a <code>corDoFundo</code>.</li>
+   <li>Clique em <b>▶ Rodar</b> e veja o resultado.</li></ol>
+   <div class="como"><b>Curiosidade:</b> na tela do computador, o <code>y</code> começa em 0 lá em cima e <b>cresce para baixo</b>. É o contrário do gráfico da escola!</div>
+   <div class="desafio"><b>Desafio:</b> mude <code>let y = 430;</code> para <code>let y = 100;</code> e rode. Para onde o personagem foi? Depois, volte para 430.</div>` },
+ { rot:'2', titulo:'Faça o personagem andar', tempo:'cerca de 5 minutos',
+   html:`<p>Tudo o que está dentro de <code>aCadaQuadro</code> acontece <b>60 vezes por segundo</b>. É como um desenho animado: cada quadro é um pouquinho diferente do anterior.</p>
+   <ol><li>Clique no botão verde <b>Ligar as linhas da ETAPA 2</b>, aqui embaixo.</li>
+   <li>Veja no código as duas linhas que perderam as <code>//</code> e ficaram marcadas.</li>
+   <li>Clique no jogo e use as setas ← →.</li></ol>
+   <div class="como"><b>Como ler:</b> <code>if (teclaApertada("esquerda")) { x = x - velocidade; }</code> quer dizer "<b>se</b> a seta da esquerda estiver apertada, diminua o x". Diminuir o x é andar para a esquerda.</div>
+   <div class="desafio"><b>Desafio:</b> mude a <code>velocidade</code> no painel. E se você trocar o <code>-</code> por <code>+</code> na primeira linha, o que acontece?</div>` },
+ { rot:'3', titulo:'Chuva de estrelas e pontos', tempo:'cerca de 7 minutos',
+   html:`<p>Agora o jogo ganha um objetivo: pegar o que cai do céu.</p>
+   <ol><li>Clique no botão verde <b>Ligar as linhas da ETAPA 3</b>.</li>
+   <li>Olhe os dois blocos que acenderam: um faz o item cair, o outro conta os pontos.</li>
+   <li>Teste e tente pegar as estrelas.</li></ol>
+   <div class="como"><b>Como funciona:</b> a cada quadro, o <code>itemY</code> aumenta um pouquinho, e é isso que faz a estrela cair. Quando a <b>distância</b> entre o personagem e a estrela fica menor que 60, eles se tocaram: ganha ponto!</div>
+   <div class="desafio"><b>Desafio:</b> faça cada item valer 5 pontos. Depois troque a ⭐ por 🍕 no painel.</div>` },
+ { rot:'4', titulo:'Cuidado com o bug!', tempo:'cerca de 5 minutos',
+   html:`<p>Todo jogo precisa de um perigo. Em computação, um <b>bug</b> é um erro no programa, e aqui ele virou personagem.</p>
+   <ol><li>Clique no botão verde <b>Ligar as linhas da ETAPA 4</b>.</li>
+   <li>Teste e desvie do bug. Encostar nele custa 3 pontos.</li></ol>
+   <div class="como"><b>Repare:</b> o bug cai com <code>velocidadeDaQueda + 2</code>. Ele é sempre um pouco mais rápido que o item.</div>
+   <div class="desafio"><b>Desafio:</b> troque o bug por 👾 e faça ele cair ainda mais rápido. Quanto ele deve tirar de pontos para o jogo ficar justo?</div>` },
+ { rot:'★', titulo:'Pronto: seu jogo está completo', tempo:'últimos minutos',
+   html:`<p>Falta pouco para fechar o jogo, e depois é só levar para casa.</p>
+   <ol><li>Clique no botão verde <b>Ligar as linhas do BÔNUS</b>.</li>
+   <li>Teste e tente chegar a 10 pontos.</li></ol>
+   <div class="como"><b>O que mudou:</b> as duas primeiras linhas impedem o personagem de sair da tela. A terceira mostra a mensagem de vitória quando <code>pontos</code> chega a 10.</div>
+   <div class="desafio"><b>Desafio final:</b> mude a meta para 20 pontos e escreva sua própria mensagem de vitória.</div>
+   <div class="como"><b>Para levar:</b> clique no botão amarelo e baixe o arquivo <code>meu-jogo.html</code>, que abre com dois cliques em qualquer computador. Se preferir receber por e-mail, com um certificado de participação, use o botão azul.</div>` }
+];
+let etapa = 0;
+
+/* ================= motor que roda dentro do jogo ================= */
+const ENGINE = [
+"var c=document.getElementById('c'),g=c.getContext('2d');",
+"var D=Math.min(2,window.devicePixelRatio||1);c.width=800*D;c.height=500*D;g.setTransform(D,0,0,D,0,0);",
+"var __t={},__erro=false,__ok=false;",
+"var __map={ArrowLeft:'esquerda',ArrowRight:'direita',ArrowUp:'cima',ArrowDown:'baixo',' ':'espaço'};",
+"addEventListener('keydown',function(e){var m=__map[e.key];if(m){__t[m]=true;e.preventDefault();}});",
+"addEventListener('keyup',function(e){var m=__map[e.key];if(m)__t[m]=false;});",
+"addEventListener('blur',function(){__t={};});",
+"addEventListener('pointerdown',function(){window.focus();});",
+"function teclaApertada(n){return !!__t[n];}",
+"function pintarFundo(cor){g.fillStyle=cor;g.fillRect(0,0,800,500);}",
+"function desenhar(e,x,y,t){t=t||50;g.font=t+'px \"Apple Color Emoji\",\"Segoe UI Emoji\",\"Noto Color Emoji\",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle='#fff';g.fillText(String(e),x,y);}",
+"function escrever(s,x,y,t){t=t||32;g.font='800 '+t+'px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';g.lineWidth=t/5;g.strokeStyle='rgba(20,8,60,.85)';g.strokeText(String(s),x,y);g.fillStyle='#fff';g.fillText(String(s),x,y);}",
+"function sortear(a,b){return Math.floor(a+Math.random()*(b-a+1));}",
+"function distancia(x1,y1,x2,y2){return Math.hypot(x1-x2,y1-y2);}",
+"var __ac=null;function __tom(f,d,tp,s){try{if(!__ac)__ac=new (window.AudioContext||window.webkitAudioContext)();var t=__ac.currentTime,o=__ac.createOscillator(),v=__ac.createGain();o.type=tp;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*s,t+d);v.gain.setValueAtTime(.13,t);v.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(v);v.connect(__ac.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}",
+"function somDeAcerto(){__tom(660,.12,'triangle',1.6);}",
+"function somDeErro(){__tom(200,.3,'sawtooth',.5);}",
+"function __linhas(e){var r=[],s=String(e&&e.stack||''),re=/:(\\d+):\\d+/g,m;while((m=re.exec(s)))r.push(+m[1]);return r;}",
+"window.onerror=function(m,src,l){__erro=true;parent.postMessage({tipo:'erro',msg:String(m),linhas:[l]},'*');return true;};",
+"function __iniciar(){if(__erro)return;if(typeof aCadaQuadro!=='function'){parent.postMessage({tipo:'erro',msg:'__semfuncao',linhas:[]},'*');return;}",
+"  function loop(){try{aCadaQuadro();}catch(e){parent.postMessage({tipo:'erro',msg:e.name+': '+e.message,linhas:__linhas(e)},'*');return;}",
+"    if(!__ok){__ok=true;parent.postMessage({tipo:'ok'},'*');}",
+"    if(!document.hasFocus()){g.fillStyle='rgba(0,0,0,.55)';g.fillRect(250,455,300,36);g.font='700 18px system-ui,sans-serif';g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText('Clique aqui para jogar',400,474);}",
+"    requestAnimationFrame(loop);}",
+"  loop();}"
+].join('\n');
+
+const PRE = '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#120838;overflow:hidden}canvas{display:block;width:100%;height:100%}</style></head><body><canvas id="c"></canvas><script>\n'
+  + ENGINE + '\n<\/script><script>\n';
+const OFF = PRE.split('\n').length - 1;
+
+/* ================= editor ================= */
+function atualizarGutter(){
+  const n = ed.value.split('\n').length;
+  let s = ''; for (let i=1;i<=n;i++) s += i + '\n';
+  gut.textContent = s;
+  gut.scrollTop = ed.scrollTop;
+}
+function guardar(){ try { localStorage.setItem('oficina_code', ed.value); localStorage.setItem('oficina_etapa', String(etapa)); } catch(e){} }
+function setCode(s){ ed.value = s; atualizarGutter(); guardar(); }
+ed.addEventListener('scroll', () => { gut.scrollTop = ed.scrollTop; });
+let tSave = 0;
+ed.addEventListener('input', () => { atualizarGutter(); atualizarBotaoLigar(); clearTimeout(tSave); tSave = setTimeout(guardar, 400); });
+
+function inserir(texto){
+  ed.focus();
+  const ok = document.execCommand && document.execCommand('insertText', false, texto);
+  if (!ok) ed.setRangeText(texto, ed.selectionStart, ed.selectionEnd, 'end');
+  atualizarGutter(); guardar();
+}
+const ROTULO = {0:null, 1:'ETAPA 2', 2:'ETAPA 3', 3:'ETAPA 4', 4:'BÔNUS'};
+function blocos(rotulo){
+  const ls = ed.value.split('\n'), achados = [];
+  const re = new RegExp('^\\s*//\\s*' + rotulo + '\\b');
+  for (let i=0;i<ls.length;i++){
+    if (re.test(ls[i])){
+      for (let j=i+1;j<ls.length && ls[j].trim()!=='';j++) achados.push(j);
+    }
+  }
+  return {ls, achados};
+}
+function contarDesligadas(rotulo){
+  if (!rotulo) return 0;
+  const {ls, achados} = blocos(rotulo);
+  return achados.filter(j => /^\s*\/\/ ?\S/.test(ls[j])).length;
+}
+function ligarEtapa(){
+  const rotulo = ROTULO[etapa]; if (!rotulo) return;
+  const {ls, achados} = blocos(rotulo);
+  let ini=-1, fim=-1, n=0;
+  for (const j of achados){
+    const m = ls[j].match(/^(\s*)\/\/ ?(.*)$/);
+    if (m && m[2].trim() !== ''){ ls[j] = m[1] + m[2]; n++; if (ini<0) ini=j; fim=j; }
+  }
+  if (!n){ msg.className='ok'; msg.textContent='As linhas desta etapa já estão ligadas.'; return; }
+  setCode(ls.join('\n'));
+  let p=0; for (let i=0;i<ini;i++) p += ls[i].length + 1;
+  let q=p; for (let i=ini;i<=fim;i++) q += ls[i].length + 1;
+  ed.focus(); ed.setSelectionRange(p, Math.max(p, q-1));
+  const lh = parseFloat(getComputedStyle(ed).lineHeight) || 24;
+  ed.scrollTop = Math.max(0, (ini-3)*lh);
+  atualizarBotaoLigar();
+  rodar(false);
+  travaMsg = Date.now() + 3500;
+  msg.className='ok';
+  msg.innerHTML = `✅ ${n} linha${n>1?'s':''} ligada${n>1?'s':''}. Olhe o trecho marcado no código e o jogo ao lado.`;
+}
+function atualizarBotaoLigar(){
+  const b = $('bLigarEtapa'), rotulo = ROTULO[etapa];
+  if (!rotulo){ b.hidden = true; return; }
+  const faltam = contarDesligadas(rotulo);
+  b.hidden = false; b.disabled = faltam === 0;
+  b.textContent = faltam ? `⚡ Ligar as ${faltam} linhas da ${rotulo}` : `✓ Linhas da ${rotulo} ligadas`;
+}
+function alternarComentario(){
+  const v = ed.value;
+  let a = ed.selectionStart, b = ed.selectionEnd;
+  if (b > a && v[b-1] === '\n') b--;
+  const ini = v.lastIndexOf('\n', a-1) + 1;
+  let fim = v.indexOf('\n', b); if (fim < 0) fim = v.length;
+  const linhas = v.slice(ini, fim).split('\n');
+  const cheias = linhas.filter(l => l.trim() !== '');
+  const tudoComentado = cheias.length > 0 && cheias.every(l => /^\s*\/\//.test(l));
+  const novas = linhas.map(l => {
+    if (l.trim() === '') return l;
+    const ind = l.match(/^\s*/)[0], resto = l.slice(ind.length);
+    if (tudoComentado) return ind + resto.replace(/^\/\/ ?/, '');
+    return ind + '// ' + resto;
+  }).join('\n');
+  ed.focus(); ed.setSelectionRange(ini, fim);
+  inserir(novas);
+  ed.setSelectionRange(ini, ini + novas.length);
+}
+ed.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); rodar(true); return; }
+  if ((e.ctrlKey || e.metaKey) && (e.key === '/' || e.key === ';' || e.code === 'Slash' || e.code === 'IntlRo' || e.code === 'NumpadDivide')){ e.preventDefault(); alternarComentario(); return; }
+  if (e.key === 'Tab' && !e.shiftKey){ e.preventDefault(); inserir('  '); }
+  if (e.key === 'Escape'){ e.preventDefault(); parar(); }
+});
+
+/* ================= rodar e mensagens ================= */
+let travaMsg = 0;
+function mostrarOk(){
+  if (Date.now() < travaMsg) return;
+  msg.className = 'ok';
+  msg.innerHTML = etapa === 0
+    ? '✅ Rodou! Mexa no painel de controle e rode de novo.'
+    : '✅ Rodou! <b>Clique no jogo</b> e use as setas ← →.';
+}
+function rodar(focar){
+  if (Date.now() >= travaMsg) { msg.className='ok'; msg.textContent='Testando…'; }
+  frame.srcdoc = PRE + ed.value + '\n<\/script><script>__iniciar();<\/script></body></html>';
+  if (focar) setTimeout(() => { try { frame.focus(); } catch(e){} }, 150);
+}
+function parar(){
+  frame.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#120838;color:#c3b6ff;display:flex;align-items:center;justify-content:center;font:600 22px system-ui}</style></head><body>jogo parado</body></html>';
+  msg.className = 'ok'; msg.textContent = '⏸ Jogo parado. Clique em ▶ Testar para rodar de novo.';
+  ed.focus();
+}
+function traduzir(m){
+  if (m === '__semfuncao') return 'Não encontrei a parte <code>function aCadaQuadro()</code>. Ela foi apagada ou alterada? Clique em ↺ Recomeçar.';
+  let r;
+  if ((r = m.match(/([\wÀ-ÿ$]+) is not defined/))) return `O computador não conhece o nome <b>${r[1]}</b>. Confira se está escrito igualzinho ao do painel (maiúsculas e minúsculas fazem diferença!).`;
+  if ((r = m.match(/([\wÀ-ÿ$.]+) is not a function/))) return `<b>${r[1]}</b> não é um comando que o computador conhece. Confira a escrita.`;
+  if (/Syntax|Unexpected|missing|Invalid or unexpected|unterminated|end of input/i.test(m))
+    return 'Tem algum símbolo faltando ou sobrando. Confira as aspas <code>" "</code>, os parênteses <code>( )</code>, as chaves <code>{ }</code> e o <code>;</code> das linhas que você mexeu.';
+  if (/Assignment to constant/i.test(m)) return 'Esse valor não pode ser mudado aqui.';
+  return 'O computador encontrou um problema: <code>' + m.replace(/</g,'&lt;') + '</code>';
+}
+let linhaErro = 0;
+window.addEventListener('message', e => {
+  if (e.source !== frame.contentWindow || !e.data) return;
+  const d = e.data;
+  if (d.tipo === 'ok'){ mostrarOk(); return; }
+  if (d.tipo === 'erro'){
+    const total = ed.value.split('\n').length;
+    linhaErro = 0;
+    for (const l of (d.linhas || [])){ const k = l - OFF; if (k >= 1 && k <= total){ linhaErro = k; break; } }
+    msg.className = 'erro';
+    msg.innerHTML = '🐞 <b>Opa, um bug de verdade!</b> ' + (linhaErro ? `(linha ${linhaErro}) ` : '') + traduzir(String(d.msg || ''))
+      + (linhaErro ? '<br><button id="verLinha">Mostrar a linha</button>' : '')
+      + '<br><span style="font-size:15px;color:#c3b6ff">Não se preocupe: programadores corrigem erros o dia todo. Se travar, use 🆘 Me perdi.</span>';
+    const b = document.getElementById('verLinha');
+    if (b) b.onclick = () => irParaLinha(linhaErro);
+  }
+});
+function irParaLinha(n){
+  const ls = ed.value.split('\n'); let p = 0;
+  for (let i=0;i<n-1;i++) p += ls[i].length + 1;
+  ed.focus(); ed.setSelectionRange(p, p + (ls[n-1] || '').length);
+  const lh = parseFloat(getComputedStyle(ed).lineHeight) || 24;
+  ed.scrollTop = Math.max(0, (n-4)*lh);
+}
+
+/* ================= etapas: navegação ================= */
+function painel(code){
+  const a = code.indexOf('// ╔'), b = code.indexOf('// ╚');
+  if (a < 0 || b < a) return null;
+  let e = code.indexOf('\n', b); if (e < 0) e = code.length;
+  return code.slice(a, e);
+}
+function carregar(nivel){
+  let novo = gerar(nivel);
+  const p = painel(ed.value), q = painel(novo);
+  if (p && q) novo = novo.replace(q, () => p);
+  setCode(novo); atualizarBotaoLigar(); rodar(false);
+}
+function mostrarEtapa(i){
+  etapa = i; guardar();
+  const E = ETAPAS[i];
+  $('tabs').querySelectorAll('button').forEach((b,k) => b.setAttribute('aria-current', k === i ? 'step' : 'false'));
+  $('guia').innerHTML = `<h2>${E.titulo}</h2><p class="tempo">Etapa ${i < 4 ? i+1 + ' de 4' : 'extra'} · ${E.tempo}</p>${E.html}`;
+  $('bPronta').hidden = i === 0;
+  atualizarBotaoLigar();
+  $('bBaixar').hidden = i < ETAPAS.length-1;
+  $('bInscrever').hidden = i < ETAPAS.length-1;
+}
+ETAPAS.forEach((E,i) => {
+  const b = document.createElement('button');
+  b.textContent = E.rot; b.title = E.titulo; b.setAttribute('aria-label', 'Etapa ' + E.rot + ': ' + E.titulo);
+  b.onclick = () => mostrarEtapa(i);
+  $('tabs').appendChild(b);
+});
+$('bLigarEtapa').onclick = ligarEtapa;
+$('bRodar').onclick = () => rodar(true);
+$('bParar').onclick = parar;
+$('bLiga').onclick = alternarComentario;
+$('bRecomeca').onclick = () => carregar(etapa);          /* começo da etapa = etapas anteriores ligadas */
+$('bPronta').onclick = () => carregar(etapa + 1);        /* esta etapa já ligada */
+let armado = false;
+$('nova').onclick = () => {
+  if (!armado){ armado = true; $('nova').textContent = 'Clique de novo para apagar tudo'; setTimeout(() => { armado = false; $('nova').textContent = 'Nova dupla'; }, 4000); return; }
+  armado = false; $('nova').textContent = 'Nova dupla';
+  setCode(gerar(0)); mostrarEtapa(0); rodar(false);
+};
+
+/* ================= levar o jogo ================= */
+$('bBaixar').onclick = () => {
+  const pagina = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1">'
+    + '<title>Meu jogo</title><style>html,body{margin:0;height:100%;background:#120838;overflow:hidden;'
+    + 'display:flex;align-items:center;justify-content:center}canvas{max-width:100vw;max-height:100vh;display:block}'
+    + '</style></head><body><canvas id="c" width="800" height="500"></canvas><script>\n'
+    + ENGINE + '\n<\/script><script>\n' + ed.value + '\n<\/script><script>__iniciar();<\/script></body></html>';
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([pagina], {type:'text/html'}));
+    a.download = 'meu-jogo.html'; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    msg.className='ok'; msg.innerHTML='✅ Arquivo <b>meu-jogo.html</b> baixado. Abra com dois cliques em qualquer computador.';
+  } catch(e){
+    msg.className='erro'; msg.textContent='Não consegui baixar aqui. Peça ajuda a um monitor para copiar o arquivo.';
+  }
+};
+
+
+/* ================= inscrições (nome, e-mail, celular + jogo) ================= */
+const CHAVE_INS='oficina_inscricoes';
+function lerInscricoes(){ try{ const v=localStorage.getItem(CHAVE_INS); return v?JSON.parse(v):[]; }catch(e){ return []; } }
+function gravarInscricoes(l){ try{ localStorage.setItem(CHAVE_INS, JSON.stringify(l)); }catch(e){
+  msg.className='erro'; msg.textContent='Não consegui gravar a inscrição neste computador. Chame um monitor.'; } }
+function baixar(nome, texto, tipo){
+  try{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([texto],{type:tipo||'text/plain;charset=utf-8'}));
+    a.download=nome; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    return true;
+  }catch(e){ return false; }
+}
+function abrirInscricao(){
+  $('erroForm').hidden=true;
+  $('fNome').value=''; $('fEmail').value=''; $('fFone').value='';
+  $('fAceite').checked=false; $('fMenor').checked=false;
+  $('modal').hidden=false; $('fNome').focus();
+}
+$('bInscrever').onclick=abrirInscricao;
+$('bCancelar').onclick=()=>{ $('modal').hidden=true; ed.focus(); };
+$('formInscricao').addEventListener('submit', e=>{
+  e.preventDefault();
+  const nome=$('fNome').value.trim(), email=$('fEmail').value.trim(), fone=$('fFone').value.trim();
+  const erro=$('erroForm');
+  if(nome.length<3){ erro.textContent='Escreva seu nome completo.'; erro.hidden=false; return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)){ erro.textContent='Confira o e-mail: parece estar incompleto.'; erro.hidden=false; return; }
+  if(fone && fone.replace(/\D/g,'').length<10){ erro.textContent='O celular precisa ter DDD e número, ou pode ficar em branco.'; erro.hidden=false; return; }
+  if(!$('fAceite').checked){ erro.textContent='Para enviarmos o e-mail, precisamos da sua autorização.'; erro.hidden=false; return; }
+  const lista=lerInscricoes();
+  lista.push({ nome, email, fone, menor:$('fMenor').checked, data:new Date().toISOString(),
+    etapa:etapa+1, jogo:ed.value });
+  gravarInscricoes(lista);
+  $('modal').hidden=true;
+  msg.className='ok';
+  msg.innerHTML='✅ Inscrição registrada. Você vai receber <b>seu jogo</b> e o certificado no e-mail informado.';
+  travaMsg=Date.now()+6000;
+});
+/* ---- painel do organizador (tecla O) ---- */
+function abrirOrganiza(){
+  const l=lerInscricoes();
+  $('resumoIns').innerHTML = l.length
+    ? `<b>${l.length}</b> inscrição(ões) guardada(s) neste computador. Última: ${new Date(l[l.length-1].data).toLocaleString('pt-BR')}.`
+    : 'Nenhuma inscrição registrada neste computador ainda.';
+  armadoApagar=false; $('bApagar').textContent='Apagar todas as inscrições';
+  $('organiza').hidden=false;
+}
+let armadoApagar=false;
+$('bFechaOrg').onclick=()=>{ $('organiza').hidden=true; ed.focus(); };
+$('bCsv').onclick=()=>{
+  const l=lerInscricoes();
+  if(!l.length) return;
+  const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const linhas=[['nome','email','celular','menor_de_18','data_hora','etapa_concluida'].join(';')];
+  for(const i of l) linhas.push([i.nome,i.email,i.fone,i.menor?'sim':'nao',
+    new Date(i.data).toLocaleString('pt-BR'), i.etapa].map(esc).join(';'));
+  baixar('inscricoes-oficina.csv', '\ufeff'+linhas.join('\r\n'), 'text/csv;charset=utf-8');
+};
+$('bJson').onclick=()=>{
+  const l=lerInscricoes();
+  if(!l.length) return;
+  baixar('inscricoes-oficina.json', JSON.stringify(l,null,1), 'application/json');
+};
+$('bApagar').onclick=()=>{
+  if(!armadoApagar){ armadoApagar=true; $('bApagar').textContent='Clique de novo para apagar'; return; }
+  try{ localStorage.removeItem(CHAVE_INS); }catch(e){}
+  armadoApagar=false; abrirOrganiza();
+};
+addEventListener('keydown', e=>{
+  if(e.key==='Escape' && !$('modal').hidden){ $('modal').hidden=true; return; }
+  if(e.key==='Escape' && !$('organiza').hidden){ $('organiza').hidden=true; return; }
+  if((e.key==='o'||e.key==='O') && document.activeElement!==ed && $('modal').hidden){ abrirOrganiza(); }
+});
+
+/* ================= início ================= */
+let salvo = null, etSalva = 0;
+try { salvo = localStorage.getItem('oficina_code'); etSalva = parseInt(localStorage.getItem('oficina_etapa') || '0', 10) || 0; } catch(e){}
+setCode(salvo || gerar(0));
+mostrarEtapa(clamp(etSalva, 0, ETAPAS.length-1));
+rodar(false);
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+})();
+</script>
+</body>
+</html>
